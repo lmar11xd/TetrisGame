@@ -1,4 +1,4 @@
-package com.lmar.tetris.app
+package com.lmar.tetris
 
 import android.app.Application
 import dagger.hilt.android.HiltAndroidApp
