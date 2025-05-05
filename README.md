@@ -5,9 +5,12 @@ Juego de Tetris con Arquitectura Limpia
 https://material-foundation.github.io/material-theme-builder/
 
 # Fonts
+```
 implementation(libs.androidx.ui.text.google.fonts)
+
 uiTextGoogleFonts = "1.8.0"
 androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
+```
 
 ## Agregar fuentes: Type.kt
 ```
