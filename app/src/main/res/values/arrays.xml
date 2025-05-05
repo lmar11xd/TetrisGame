@@ -1,41 +1,4 @@
-# Tetris
-Juego de Tetris con Arquitectura Limpia
-
-# Temas
-https://material-foundation.github.io/material-theme-builder/
-
-# Fonts
-implementation(libs.androidx.ui.text.google.fonts)
-uiTextGoogleFonts = "1.8.0"
-androidx-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts", version.ref = "uiTextGoogleFonts" }
-
-## Agregar fuentes: Type.kt
-```
-...
-val provider = GoogleFont.Provider(
-    providerAuthority = "com.google.android.gms.fonts",
-    providerPackage = "com.google.android.gms",
-    certificates = R.array.com_google_android_gms_fonts_certs
-)
-
-val bodyFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Exo"),
-        fontProvider = provider,
-    )
-)
-
-val displayFontFamily = FontFamily(
-    Font(
-        googleFont = GoogleFont("Amaranth"),
-        fontProvider = provider,
-    )
-)
-...
-```
-
-## Agregar Certificados: values/arrays.xml
-```
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <array name="com_google_android_gms_fonts_certs">
         <item>@array/com_google_android_gms_fonts_certs_dev</item>
@@ -52,4 +15,3 @@ val displayFontFamily = FontFamily(
         </item>
     </string-array>
 </resources>
-```

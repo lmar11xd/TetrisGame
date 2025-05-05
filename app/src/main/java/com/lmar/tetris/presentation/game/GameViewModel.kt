@@ -4,14 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.lifecycle.ViewModel
 import com.lmar.tetris.domain.model.Tetromino
-import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 //@HiltViewModel
 class GameViewModel  {//@Inject constructor(): ViewModel()
@@ -29,12 +26,7 @@ class GameViewModel  {//@Inject constructor(): ViewModel()
     }
 
     private fun canMove(piece: TetrominoInstance, dx: Int, dy: Int, rotated: Boolean = false): Boolean {
-        val shape = if(rotated)
-            piece.type.shape.map { -it.second to it.first } //Rotacion 90°
-        else
-            piece.type.shape
-
-        return shape.all { (x, y) ->
+        return piece.shape.all { (x, y) ->
             val newX = piece.position.first + x + dx
             val newY = piece.position.second + y + dy
 
@@ -44,27 +36,106 @@ class GameViewModel  {//@Inject constructor(): ViewModel()
 
     fun moveLeft() {
         val piece = gameState.currentPiece ?: return
-        val newPiece = piece.copy(position = piece.position.first - 1 to piece.position.second)
-        if (canMove(newPiece, 0, 0)) {
-            gameState = gameState.copy(currentPiece = newPiece)
+        if (canMove(piece, dx = -1, dy = 0)) {
+            gameState = gameState.copy(currentPiece = piece.copy(position = piece.position.first - 1 to piece.position.second))
         }
     }
 
     fun moveRight() {
         val piece = gameState.currentPiece ?: return
-        val newPiece = piece.copy(position = piece.position.first + 1 to piece.position.second)
-        if (canMove(newPiece, 0, 0)) {
-            gameState = gameState.copy(currentPiece = newPiece)
+        if (canMove(piece, dx = 1, dy = 0)) {
+            gameState = gameState.copy(currentPiece = piece.copy(position = piece.position.first + 1 to piece.position.second))
         }
     }
 
     fun rotate() {
+        //rotateWithWallKick()
+        rotateWithSRS(clockwise = true) //Rotación Horaria
+    }
+
+    //Rotate Normal
+    /*fun rotate() {
         val piece = gameState.currentPiece ?: return
         val rotatedShape = piece.shape.map { (x, y) -> -y to x }
         val rotatedPiece = piece.copy(shape = rotatedShape)
         if (canMove(rotatedPiece, 0, 0)) {
             gameState = gameState.copy(currentPiece = rotatedPiece)
         }
+    }*/
+
+
+    //Rotate con Wall Kick
+    /* Es una técnica usada en juegos de Tetris donde, si una rotación no es válida
+    * por estar muy cerca de una pared (u otra pieza), se intenta rotar de nuevo desplazando
+    * la pieza levemente hacia un lado (izquierda o derecha).
+    * */
+    fun rotateWithWallKick() {
+        val piece = gameState.currentPiece ?: return
+        val rotatedShape = piece.shape.map { (x, y) -> -y to x }
+
+        // Intento 1: rotar en la misma posición
+        var rotatedPiece = piece.copy(shape = rotatedShape)
+        if (canMove(rotatedPiece, 0, 0)) {
+            gameState = gameState.copy(currentPiece = rotatedPiece)
+            return
+        }
+
+        // Intento 2: wall kick a la izquierda
+        rotatedPiece = rotatedPiece.copy(position = piece.position.first - 1 to piece.position.second)
+        if (canMove(rotatedPiece, 0, 0)) {
+            gameState = gameState.copy(currentPiece = rotatedPiece)
+            return
+        }
+
+        // Intento 3: wall kick a la derecha
+        rotatedPiece = rotatedPiece.copy(position = piece.position.first + 2 to piece.position.second) // +2 porque ya era -1
+        if (canMove(rotatedPiece, 0, 0)) {
+            gameState = gameState.copy(currentPiece = rotatedPiece)
+        }
+    }
+
+    /*
+    * El SRS (Super Rotation System) es el sistema de rotación utilizado en los Tetris modernos, como Tetris Guideline o Tetris DS. Es más sofisticado que un simple "wall kick",
+    * ya que define desplazamientos específicos (kicks) según:
+    * El tipo de pieza (especialmente la "I", que tiene su propia tabla).
+    * El tipo de rotación (de 0° a 90°, de 90° a 180°, etc.).
+    * El sistema intenta la rotación junto con un conjunto ordenado de desplazamientos.
+    * */
+    fun rotateWithSRS(clockwise: Boolean = true) {
+        val piece = gameState.currentPiece ?: return
+
+        val oldRotation = piece.rotation
+        val newRotation = if (clockwise) (oldRotation + 1) % 4 else (oldRotation + 3) % 4
+
+        val rotatedShape = piece.type.shape.map { (x, y) ->
+            when (newRotation % 4) {
+                0 -> x to y
+                1 -> -y to x
+                2 -> -x to -y
+                3 -> y to -x
+                else -> x to y
+            }
+        }
+
+        val kicks = when (piece.type) {
+            Tetromino.I -> srsKicksI[oldRotation]?.get(newRotation)
+            else -> srsKicks[oldRotation]?.get(newRotation)
+        } ?: listOf(0 to 0)
+
+        for ((dx, dy) in kicks) {
+            val newPos = piece.position.first + dx to piece.position.second + dy
+            val rotatedPiece = piece.copy(
+                shape = rotatedShape,
+                position = newPos,
+                rotation = newRotation
+            )
+
+            if (canMove(rotatedPiece, 0, 0)) {
+                gameState = gameState.copy(currentPiece = rotatedPiece)
+                return
+            }
+        }
+        // Si ninguna posición es válida, no rota
     }
 
     fun onDrop() {
@@ -76,10 +147,8 @@ class GameViewModel  {//@Inject constructor(): ViewModel()
     private suspend fun drop() {
         val piece = gameState.currentPiece ?: return
 
-        val newPosition = piece.position.first to piece.position.second + 1
-        val movedPiece = piece.copy(position = newPosition)
-
-        if (canMove(movedPiece, 0, 0)) {
+        if (canMove(piece, dx = 0, dy = 1)) {
+            val movedPiece = piece.copy(position = piece.position.first to piece.position.second + 1)
             gameState = gameState.copy(currentPiece = movedPiece)
         } else {
             // Fijar pieza en el tablero
@@ -128,4 +197,28 @@ class GameViewModel  {//@Inject constructor(): ViewModel()
     fun restart() {
         gameState = initialGameState()
     }
+
+    // Para piezas distintas de I y O (T, J, L, S, Z)
+    val srsKicks = mapOf(
+        0 to mapOf(1 to listOf(0 to 0, -1 to 0, -1 to 1, 0 to -2, -1 to -2)), // 0 -> R
+        1 to mapOf(0 to listOf(0 to 0, 1 to 0, 1 to -1, 0 to 2, 1 to 2)),     // R -> 0
+        1 to mapOf(2 to listOf(0 to 0, 1 to 0, 1 to -1, 0 to 2, 1 to 2)),     // R -> 2
+        2 to mapOf(1 to listOf(0 to 0, -1 to 0, -1 to 1, 0 to -2, -1 to -2)), // 2 -> R
+        2 to mapOf(3 to listOf(0 to 0, 1 to 0, 1 to 1, 0 to -2, 1 to -2)),    // 2 -> L
+        3 to mapOf(2 to listOf(0 to 0, -1 to 0, -1 to -1, 0 to 2, -1 to 2)),  // L -> 2
+        3 to mapOf(0 to listOf(0 to 0, -1 to 0, -1 to -1, 0 to 2, -1 to 2)),  // L -> 0
+        0 to mapOf(3 to listOf(0 to 0, 1 to 0, 1 to 1, 0 to -2, 1 to -2))     // 0 -> L
+    )
+
+    // Para pieza I
+    val srsKicksI = mapOf(
+        0 to mapOf(1 to listOf(0 to 0, -2 to 0, 1 to 0, -2 to -1, 1 to 2)),    // 0 -> R
+        1 to mapOf(0 to listOf(0 to 0, 2 to 0, -1 to 0, 2 to 1, -1 to -2)),   // R -> 0
+        1 to mapOf(2 to listOf(0 to 0, -1 to 0, 2 to 0, -1 to 2, 2 to -1)),   // R -> 2
+        2 to mapOf(1 to listOf(0 to 0, 1 to 0, -2 to 0, 1 to -2, -2 to 1)),   // 2 -> R
+        2 to mapOf(3 to listOf(0 to 0, 2 to 0, -1 to 0, 2 to 1, -1 to -2)),   // 2 -> L
+        3 to mapOf(2 to listOf(0 to 0, -2 to 0, 1 to 0, -2 to -1, 1 to 2)),   // L -> 2
+        3 to mapOf(0 to listOf(0 to 0, 1 to 0, -2 to 0, 1 to -2, -2 to 1)),   // L -> 0
+        0 to mapOf(3 to listOf(0 to 0, -1 to 0, 2 to 0, -1 to 2, 2 to -1))    // 0 -> L
+    )
 }

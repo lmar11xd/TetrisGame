@@ -13,16 +13,16 @@ sealed class Screen(val route: String) {
 }
 
 @Composable
-fun NavGraph(startDestination: String = Screen.Game.route) {
+fun NavGraph(startDestination: String = Screen.Home.route) {
     val navController = rememberNavController()
 
     NavHost(navController, startDestination) {
         composable(Screen.Home.route) {
-            HomeScreen()
+            HomeScreen(navController)
         }
 
         composable(Screen.Game.route) {
-            GameScreen()
+            GameScreen(navController)
         }
     }
 }

@@ -15,5 +15,6 @@ data class GameState(
 data class TetrominoInstance(
     val type: Tetromino,
     val position: Pair<Int, Int>, // Posicion de referencia
-    val shape: List<Pair<Int, Int>> = type.shape
+    val shape: List<Pair<Int, Int>> = type.shape,
+    val rotation: Int = 0 // 0: 0°, 1: 90°, 2: 180°, 3: 270°
 )
