@@ -16,7 +16,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lmar.tetris.presentation.game.GameState
 
-
 @Composable
 fun TetrisBoard(gameState: GameState, modifier: Modifier = Modifier, cellSize: Dp = 24.dp) {
     Box(

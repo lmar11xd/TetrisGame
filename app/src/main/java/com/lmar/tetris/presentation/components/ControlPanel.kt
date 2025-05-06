@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 
 @Composable
 fun ControlPanel(
@@ -30,7 +31,6 @@ fun ControlPanel(
     onDownClick: () -> Unit,
     onCenterClick: () -> Unit
 ) {
-
     ConstraintLayout(
         modifier = modifier
             .fillMaxWidth()
@@ -44,9 +44,10 @@ fun ControlPanel(
             modifier = Modifier
                 .constrainAs(leftButton) {
                     start.linkTo(parent.start)
+                    end.linkTo(centerButton.start, margin = 8.dp)
                     top.linkTo(parent.top)
-                }
-                .width(90.dp),
+                    width = Dimension.fillToConstraints
+                },
             shape = MaterialTheme.shapes.medium
         ) {
             Icon(
@@ -77,10 +78,11 @@ fun ControlPanel(
             onClick = onRightClick,
             modifier = Modifier
                 .constrainAs(rightButton) {
+                    start.linkTo(centerButton.end, margin = 8.dp)
                     end.linkTo(parent.end)
                     top.linkTo(parent.top)
-                }
-                .width(90.dp),
+                    width = Dimension.fillToConstraints
+                },
             shape = MaterialTheme.shapes.medium
         ) {
             Icon(
@@ -97,8 +99,8 @@ fun ControlPanel(
                     top.linkTo(leftButton.bottom, margin = 12.dp)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
-                }
-                .width(90.dp),
+                    width = Dimension.fillToConstraints
+                },
             shape = MaterialTheme.shapes.medium
         ) {
             Icon(
