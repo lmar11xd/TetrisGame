@@ -6,31 +6,29 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.lmar.tetris.presentation.game.GameState
 
 
 @Composable
-fun TetrisBoard(gameState: GameState) {
+fun TetrisBoard(gameState: GameState, modifier: Modifier = Modifier, cellSize: Dp = 24.dp) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surfaceVariant)
-            .border(2.dp, Color.Cyan)
-            .padding(16.dp)
     ) {
         Box(
             modifier = Modifier
                 .align(Alignment.Center)
-                .background(Color.DarkGray)
-                .border(2.dp, Color.Black)
+                .background(Color.LightGray)
+                .border(1.dp, Color.DarkGray)
         ) {
             Column {
                 for (y in 0..19) {
@@ -54,7 +52,7 @@ fun TetrisBoard(gameState: GameState) {
 
                             Box(
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(cellSize)
                                     .background(blockColor.copy(alpha = alpha))
                                     .border(0.5.dp, Color.Black)
                             )

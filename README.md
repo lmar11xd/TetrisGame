@@ -56,3 +56,9 @@ val displayFontFamily = FontFamily(
     </string-array>
 </resources>
 ```
+
+# Cambiar Icono App
+````
+Ir a: File -> New -> Image Asset
+En Source Asset -> Path: Seleccionar Imagen
+````

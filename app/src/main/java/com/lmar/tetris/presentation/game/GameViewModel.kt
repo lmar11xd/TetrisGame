@@ -12,8 +12,19 @@ import kotlinx.coroutines.launch
 
 //@HiltViewModel
 class GameViewModel  {//@Inject constructor(): ViewModel()
+    var isPaused by mutableStateOf(false)
+    private set
+
     var gameState by mutableStateOf(initialGameState())
         private set
+
+    fun pauseGame() {
+        isPaused = true
+    }
+
+    fun resumeGame() {
+        isPaused = false
+    }
 
     private fun initialGameState(): GameState {
         val board = Array(20) { arrayOfNulls<Color>(10) }
@@ -135,7 +146,6 @@ class GameViewModel  {//@Inject constructor(): ViewModel()
                 return
             }
         }
-        // Si ninguna posición es válida, no rota
     }
 
     fun onDrop() {
